@@ -1,6 +1,6 @@
 {
 	"name": "bmd-videohub",
-	"version": "0.1.0",
+	"version": "0.0.0",
 	"description": "Blackmagic Design Videohub for Typescript",
 	"main": "dist/index.js",
 	"types" : "dist/index.d.ts",
