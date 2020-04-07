@@ -9,6 +9,7 @@
 		"compile": "tsc --declaration",
 		"dev": "tsc-watch --onSuccess \"node --trace-warnings dist/test.js\" --pretty --preserveWatchOutput"
 	},
+	"homepage": "https://github.com/rocketbeans/bmd-videohub",
 	"author": "Tobias Schwarz",
 	"license": "MIT",
 	"dependencies": {},
