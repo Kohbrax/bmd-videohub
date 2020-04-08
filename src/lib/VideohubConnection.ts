@@ -106,8 +106,6 @@ export class VideohubConnection implements VideohubConnectionEvent{
 	private parse(data: Buffer): void{
 		this.toParseStr += data.toString('utf-8');
 
-
-		// console.log("==========[BUF START]==========\n"+this.toParseStr+"\n==========[BUF END]==========");
 		let i = 0;
 		let index;
 		let updated = false;
@@ -214,7 +212,9 @@ export class VideohubConnection implements VideohubConnectionEvent{
 		}
 
 		for(let l of lines){
-			let [inputNumber, name] = l.split(" ", 2);
+			let nameIndex = l.indexOf(" ");
+			let inputNumber = l.substr(0, nameIndex);
+			let name = l.substr(nameIndex + 1);
 
 			labels[parseInt(inputNumber) + 1] = name;
 		}
@@ -242,7 +242,6 @@ export class VideohubConnection implements VideohubConnectionEvent{
 	}
 
 	public parseAck(header: string, lines: string[]){
-		console.log(" = = = = ACK = = = = ");
 	}
 
 	public getVersion() {
