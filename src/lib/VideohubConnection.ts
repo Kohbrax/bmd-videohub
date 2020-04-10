@@ -39,13 +39,45 @@ export interface VideohubStatus{
 		[index: number]: string;
 	},
 
+	serialPortLabels: {
+		[index: number]: string;
+	},
+
 	outputLocks: {
 		[index: number]: boolean;
 	}
 
 	outputRouting: {
 		[index: number]: number
-	}
+	},
+
+	videoInputStatus: {
+		[index: number]: string
+	},
+
+	videoOutputStatus: {
+		[index: number]: string
+	},
+
+	serialPortLocks: {
+		[index: number]: boolean
+	},
+
+	serialPortRouting: {
+		[index: number]: number
+	},
+
+	serialPortDirections: {
+		[index: number]: string
+	},
+
+	serialPortStatus: {
+		[index: number]: string
+	},
+
+	alarmStatus: {
+		[index: string]: string
+	},
 }
 
 export class VideohubConnection implements VideohubConnectionEvent{
@@ -59,8 +91,16 @@ export class VideohubConnection implements VideohubConnectionEvent{
 		deviceInfo: null,
 		inputLabels: { },
 		outputLabels: { },
+		serialPortLabels: { },
 		outputLocks: { },
 		outputRouting: { },
+		serialPortDirections: { },
+		serialPortLocks: { },
+		serialPortRouting: { },
+		serialPortStatus: { },
+		videoInputStatus: { },
+		videoOutputStatus: { },
+		alarmStatus: { },
 	};
 
 	private version: string = null;
@@ -70,9 +110,25 @@ export class VideohubConnection implements VideohubConnectionEvent{
 		this.parsers['VIDEOHUB DEVICE'] = this.parseVideohubDevice.bind(this);
 		this.parsers['INPUT LABELS'] = this.parseLables.bind(this);
 		this.parsers['OUTPUT LABELS'] = this.parseLables.bind(this);
+		this.parsers['SERIAL PORT LABELS'] = this.parseLables.bind(this);
+
 		this.parsers['VIDEO OUTPUT LOCKS'] = this.parseVideoOutputLocks.bind(this);
+		this.parsers['SERIAL PORT LOCKS'] = this.parseSerialPortLocks.bind(this);
+
 		this.parsers['VIDEO OUTPUT ROUTING'] = this.parseVideoOutputRouting.bind(this);
+		this.parsers['SERIAL PORT ROUTING'] = this.parseSerialPortRouting.bind(this);
+
+		this.parsers['VIDEO INPUT STATUS'] = this.parseVideoInputStatus.bind(this);
+		this.parsers['VIDEO OUTPUT STATUS'] = this.parseVideoOutputStatus.bind(this);
+		this.parsers['SERIAL PORT STATUS'] = this.parseSerialPortStatus.bind(this);
+		this.parsers['ALARM STATUS'] = this.parseAlarmStatus.bind(this);
+		
+
+		this.parsers['SERIAL PORT DIRECTIONS'] = this.parseSerialPortDirections.bind(this);
+
 		this.parsers['ACK'] = this.parseAck.bind(this);
+		this.parsers['END PRELUDE'] = this.parseEndPrelude.bind(this);
+		
 	}
 
 	public async init(){
@@ -207,6 +263,10 @@ export class VideohubConnection implements VideohubConnectionEvent{
 			labels = this.currentStatus.outputLabels;
 		}
 
+		if(header == "SERIAL PORT LABELS") {
+			labels = this.currentStatus.serialPortLabels;
+		}
+
 		if(labels == null){
 			throw new Error("Invalid header for parseLabels: "+header);
 		}
@@ -227,8 +287,6 @@ export class VideohubConnection implements VideohubConnectionEvent{
 
 			locks[parseInt(inputNumber) + 1] = (state == "O") ? true : false;
 		}
-
-		this.currentStatus.outputLocks = locks;
 	}
 
 	public parseVideoOutputRouting(header: string, lines: string[]) {
@@ -241,8 +299,77 @@ export class VideohubConnection implements VideohubConnectionEvent{
 		}
 	}
 
+	public parseVideoInputStatus(header: string, lines: string[]) {
+		let status = this.currentStatus.videoInputStatus;
+		for(let l of lines){
+			let [inputNumber, state] = l.split(" ", 2);
+
+			status[parseInt(inputNumber) + 1] = state;
+		}
+	}
+
+	public parseVideoOutputStatus(header: string, lines: string[]) {
+		let status = this.currentStatus.videoOutputStatus;
+		for(let l of lines){
+			let [inputNumber, state] = l.split(" ", 2);
+
+			status[parseInt(inputNumber) + 1] = state;
+		}
+	}
+
+	public parseSerialPortLocks(header: string, lines: string[]) {
+		let locks = this.currentStatus.serialPortLocks;
+		for(let l of lines){
+			let [inputNumber, state] = l.split(" ", 2);
+
+			locks[parseInt(inputNumber) + 1] = (state == "O") ? true : false;
+		}
+	}
+
+	public parseSerialPortRouting(header: string, lines: string[]) {
+		let routing = this.currentStatus.serialPortRouting;
+
+		for(let l of lines){
+			let [outputNumber, inputNumber] = l.split(" ", 2);
+
+			routing[parseInt(outputNumber) + 1] = parseInt(inputNumber) + 1;
+		}
+	}
+
+	public parseSerialPortDirections(header: string, lines: string[]) {
+		let directions = this.currentStatus.serialPortDirections;
+		for(let l of lines){
+			let [inputNumber, state] = l.split(" ", 2);
+
+			directions[parseInt(inputNumber) + 1] = state;
+		}
+	}
+
+	public parseSerialPortStatus(header: string, lines: string[]) {
+		let status = this.currentStatus.serialPortStatus;
+		for(let l of lines){
+			let [inputNumber, state] = l.split(" ", 2);
+
+			status[parseInt(inputNumber) + 1] = state;
+		}
+	}
+
+	public parseAlarmStatus(header: string, lines: string[]) {
+		let status = this.currentStatus.alarmStatus;
+		for(let l of lines){
+			let [name, state] = l.split(":");
+
+			status[name] = state;
+		}
+	}
+
 	public parseAck(header: string, lines: string[]){
 	}
+
+	public parseEndPrelude(header: string, lines: string[]){
+		
+	}
+	
 
 	public getVersion() {
 		return this.version;
